@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>全般 - Hugin</title>
+  <script src="../common/loader.js"></script>
+  <script type="text/javascript">loader_load('../')</script>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-main markdown">
+
+## 全般
+
+<section id="201504">
+### 2015年4月
+
+<section id="20150415">
+#### 15日
+
+研究室のコンピュータにMuninを入れてみた。常時電源投入しておくLinuxマシンがあるためと、Raspberry Piの監視用である。既にリモートサーバのMuninは動いていたので、この munin で一つにまとめてしまおうと思った、が、どうもうまくいかなかった。IPv6でクライアントと通信することが前提で動いているのもひとつ、そもそも外部から研究室のコンピュータと通信する方法がない（研究室から外部へは可能）。
+そこで、常時起動しているLinuxマシンで munin を動かし、scp で外部サーバに出力されたHTMLをそのままコピーすることとした。
+
+しかし、cron で5分おきに scp を実行するとうまく通信していないことがわかった。エラーを取ると、以下の内容であった。
+
+```
+(前略)
+debug1: read_passphrase: can't open /dev/tty: No such device or address
+debug1: No more authentication methods to try.
+Permission denied (publickey).
+lost connection
+```
+
+なお、同じエラーで悩んでいる人がいた。
+[bash: using scp in cron job fails, but runs succesfully when run from command line](http://superuser.com/questions/264820/bash-using-scp-in-cron-job-fails-but-runs-succesfully-when-run-from-command-li)
+
+外部サーバには秘密鍵を指定アクセスしているが、パスフレーズが指定されているとそれが読み取れずに認証が失敗するようだ。なお、cron ではなく通常の実行でGUI環境があればパスフレーズを入力するダイアログが表示され、成功するはず（例えば GNOME キーリング）。
+あまり推奨されないやり方ではあるけれども、パスフレーズ無しの秘密鍵と差し替えたところ成功した。
+
+なお、munin-node および munin が毎時5分おきに実行されるため、毎時 1, 6, 11, 16... 分のように実行したいと思った。やり方は簡単で、次のようにcronの設定をすると良いらしい。なるほど。
+
+```
+1-56/5 <span class="asterisk"></span> <span class="asterisk"></span> <span class="asterisk"></span> <span class="asterisk"></span> script.sh
+```
+
+参考: [【Linux】【cron】メモ -- cronの時間をずらして実行する方法Add Star](http://d.hatena.ne.jp/zhuweichen/20130201/1359682547)
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
